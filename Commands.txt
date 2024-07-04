@@ -1,0 +1,18 @@
+#Set the context
+#SasToken is in Shared Access token in the container section in Azure portal
+$context = New-AzStorageContext -StorageAccountName $storageAccountName -SasToken $sasToken 
+
+#Get the container to check the files inside          
+Get-AzStorageBlob -Container "container" -Context $context  
+
+#Get the most resent zip file
+$mostRecentBlob = Get-AzStorageBlob -Container "container" -Context $context |
+Where-Object { $_.ContentType -eq "application/x-zip-compressed" } |
+Sort-Object -Property LastModified -Descending |
+Select-Object -First 1 -Property Name
+
+#Show the filename required
+$mostRecentBlob.Name
+
+#Download the file in the current destination
+Get-AzStorageBlobContent -Blob $mostRecentBlob.Name -Container "container" -Context $context -Destination .
